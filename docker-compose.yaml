@@ -1,0 +1,43 @@
+version: '2.3'
+
+x-depends_on:
+  &default-depends_on
+    depends_on:
+      - traefik
+
+x-project:
+  &project stuar.tc
+
+services:
+
+  ## 80: Reverse proxy: Traefik
+  traefik:
+    image: traefik
+    container_name: "stuar.tc_traefik"
+    command: -c /dev/null --web --docker --logLevel=INFO
+    ports:
+      - '80:80'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:cached
+    networks:
+      default:
+        aliases:
+          - "stuar.tc.localhost"
+
+  ## 8080: WWW: Nuxt.js
+  www:
+    build:
+      context: ./stuar.tc-frontend
+      dockerfile: Dockerfile
+    image: *project
+    command: [ "npm", "run", "dev" ]
+    container_name: "stuar.tc"
+    labels:
+      - 'traefik.backend=www'
+      - 'traefik.port=3000'
+      - 'traefik.frontend.passHostHeader=true'
+      - 'traefik.frontend.rule=Host:stuar.tc.localhost,www.stuar.tc.localhost'
+    volumes:
+      - ./stuar.tc-frontend:/app:cached
+    ports:
+      - "3000:3000"

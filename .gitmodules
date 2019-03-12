@@ -1,0 +1,3 @@
+[submodule "stuar.tc-frontend"]
+	path = stuar.tc-frontend
+	url = git@github.com:Decipher/stuar.tc-frontend.git
