@@ -1,19 +1,11 @@
 version: '2.3'
 
-x-depends_on:
-  &default-depends_on
-    depends_on:
-      - traefik
-
-x-project:
-  &project stuar.tc
-
 services:
 
   ## 80: Reverse proxy: Traefik
   traefik:
     image: traefik
-    container_name: "stuar.tc_traefik"
+    container_name: "traefik"
     command: -c /dev/null --web --docker --logLevel=INFO
     ports:
       - '80:80'
@@ -23,13 +15,32 @@ services:
       default:
         aliases:
           - "stuar.tc.localhost"
+          - "components.stuar.tc.localhost"
+
+  ## 6060: Components: Vue Design System
+  components:
+    build:
+      context: ./components
+      dockerfile: Dockerfile
+    image: "stuartc_components"
+    container_name: "components"
+    labels:
+      - 'traefik.backend=components'
+      - 'traefik.port=6060'
+      - 'traefik.frontend.passHostHeader=true'
+      - 'traefik.frontend.rule=Host:components.stuar.tc.localhost'
+    volumes:
+      - ./components:/app:cached
+    ports:
+      - "6060:6060"
+      - "8080:8080"
 
   ## 8080: WWW: Nuxt.js
   www:
     build:
-      context: ./stuar.tc-frontend
+      context: ./frontend
       dockerfile: Dockerfile
-    image: *project
+    image: "stuartc_frontend"
     command: [ "npm", "run", "dev" ]
     container_name: "stuar.tc"
     labels:
@@ -38,6 +49,6 @@ services:
       - 'traefik.frontend.passHostHeader=true'
       - 'traefik.frontend.rule=Host:stuar.tc.localhost,www.stuar.tc.localhost'
     volumes:
-      - ./stuar.tc-frontend:/app:cached
+      - ./frontend:/app:cached
     ports:
       - "3000:3000"

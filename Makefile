@@ -3,13 +3,18 @@ include scripts/mk/*.mk
 .DEFAULT_GOAL := help
 
 ## Setup and install all repositories.
-install: git-submodule-update install-www docker-compose-up print-info
+install: git-submodule-update install-components install-www docker-compose-up print-info
+
+## Install stuar.tc - frontend node modules.
+install-components:
+	@$(call title,Installing stuar.tc - components)
+	@$(call exec,docker-compose run --rm components npm i)
+	@$(call exec,docker-compose run --rm components npm rebuild node-sass)
 
 ## Install stuar.tc - frontend node modules.
 install-www:
 	@$(call title,Installing stuar.tc - frontend)
-	# Run locally to avoid error.
-	@$(call exec,cd stuar.tc-frontend && npm i && cd ..)
+	@$(call exec,docker-compose run --rm www npm i)
 
 ## Start the server(s).
 up: docker-compose-up docker-compose-logs
@@ -21,7 +26,7 @@ down: docker-compose-down
 restart: docker-compose-restart docker-compose-logs
 
 ## Test all repositories.
-test: test-api test-dashboard test-engine test-www
+test: test-www
 
 ## Test stuar.tc.
 test-www:
