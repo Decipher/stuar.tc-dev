@@ -26,11 +26,16 @@ down: docker-compose-down
 restart: docker-compose-restart docker-compose-logs
 
 ## Test all repositories.
-test: test-www
+test: test-components test-www
 
-## Test stuar.tc.
+## Test stuar.tc - components.
+test-components:
+	@$(call title,Testing stuar.tc - components)
+	@$(call exec,docker-compose run --rm components npm run test)
+
+## Test stuar.tc - frontend.
 test-www:
-	@$(call title,Testing stuar.tc)
+	@$(call title,Testing stuar.tc - frontend)
 	@$(call exec,docker-compose run --rm www npm run test)
 
 ## Stop and clean the server(s).
